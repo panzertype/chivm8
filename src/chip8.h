@@ -29,7 +29,7 @@ typedef struct {
    uint8_t registers[16];
    uint8_t delay;
    uint8_t sound;
-   
+
    // PSEUDO-REGISTERS: not accessible from programs
    uint16_t programCounter;
    uint8_t stackPointer;
