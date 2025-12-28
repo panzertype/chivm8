@@ -13,6 +13,7 @@ void Chip8Init(Chip8 *chip8, uint8_t *rom, int romSize) {
         );
         exit(1);
     }
+    printf("[INFO] Rom size: %d\n", romSize);
 
     memset(chip8, 0, sizeof(Chip8));
 
@@ -57,25 +58,38 @@ void Chip8RunTick(Chip8 *chip8, double timeMs) {
     printf("[INFO]: Received opcode: 0x%04X ", opcode);
     printf("( x=0x%X, y=0x%X, kk=0x%02X, n=0x%X, nnn=0x%03X )\n", x, y, kk, n, nnn);
 
+    chip8->programCounter += 2;
+
     switch ((opcode & 0xF000) >> 12) {
         case 0:
-            if (opcode == 0x00E0) {
-                Chip8ClearScreen(chip8);
-            } else if (opcode == 0x00EE) {
-                goto unknownOpcode;    
-            } else {
-                goto unknownOpcode;    
+            switch(opcode) {
+                case 0x00E0:
+                    Chip8ClearScreen(chip8);
+                    break;
+                // case 0x00EE:
+                //     // The interpreter sets the program counter to the address at the top of the stack, then subtracts 1 from the stack pointer.
+                //     chip8->programCounter = chip8->stack[chip8->stackPointer - 1];
+                //     chip8->stackPointer--;
+                //     break;
+                default:
+                    goto unknownOpcode;
             }
             break;
         case 1: // 1nnn
             chip8->programCounter = nnn;
             break;
-        case 4: // 4xkk
-            // Skip next instruction if Vx != kk.
-            if (chip8->registers[x] != kk) {
-                chip8->programCounter += 2;
-            }
-            break;
+        // case 2: // 2nnn
+        //     // The interpreter increments the stack pointer, then puts the current PC on the top of the stack. The PC is then set to nnn.
+        //     chip8->stackPointer++; 
+        //     chip8->stack[chip8->stackPointer - 1] = chip8->programCounter;
+        //     chip8->programCounter = nnn;
+        //     break;
+        // case 4: // 4xkk
+        //     // Skip next instruction if Vx != kk.
+        //     if (chip8->registers[x] != kk) {
+        //         chip8->programCounter += 2;
+        //     }
+        //     break;
         case 6: // 6xkk
             chip8->registers[x] = kk;
             break;
@@ -87,8 +101,9 @@ void Chip8RunTick(Chip8 *chip8, double timeMs) {
             chip8->I = nnn;
             break;
         case 0xD: { // Dxyn
-            // Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
+            // Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
             // Sprites may be up to 15 bytes, for a possible sprite size of 8x15.
+            // Each row of 8 pixels is read as bit-coded starting from memory location I;
 
             uint8_t spriteLength = n;
             uint8_t vx = chip8->registers[x];
@@ -97,22 +112,30 @@ void Chip8RunTick(Chip8 *chip8, double timeMs) {
             uint8_t sprite[15] = {0}; 
             memcpy(sprite, chip8->ram + chip8->I, spriteLength);
             
-            int changed = 0;
             for (int spriteIdx = 0; spriteIdx < spriteLength; spriteIdx++) {
-                int bufferPos = vy * CHIP8_DISPLAY_WIDTH + vx;
-                uint8_t original = chip8->displayBuffer[bufferPos];
-                uint8_t result = original ^ sprite[spriteIdx];
+                int bufferPos = (vy + spriteIdx) * CHIP8_DISPLAY_WIDTH + vx;
+                uint8_t spriteLine = sprite[spriteIdx];
 
-                chip8->displayBuffer[bufferPos] = result;
-                if (!changed) {
-                   changed = (original ^ result) != 0;
+                for (int bitPos = 0; bitPos < 8; bitPos++) {
+                    int isPixelActive = spriteLine & (1 << (7 - bitPos));
+                    chip8->displayBuffer[bufferPos + bitPos] = isPixelActive ? 1 : 0;
                 }
             }
-            
-            chip8->registers[0xF] = changed ? 1 : 0;
+
+            // todo: set F register
 
             break;
         }
+        // case 0xF:
+        //     switch(kk) {
+        //         case 0x1E: // Fx1E 
+        //             // I = I + Vx.
+        //             chip8->I += chip8->registers[x];
+        //             break; 
+        //         default:
+        //             goto unknownOpcode;
+        //     }
+        //     break;
         default:
             unknownOpcode:
             fprintf(
@@ -122,6 +145,4 @@ void Chip8RunTick(Chip8 *chip8, double timeMs) {
             );
             exit(1);
     }
-
-    chip8->programCounter += 2;
 }
