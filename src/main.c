@@ -4,6 +4,8 @@
 
 #define SCALE 8
 
+#define GET_KEY_STATE(key) IsKeyUp(key) ? CHIP8_KEY_UP : CHIP8_KEY_DOWN
+
 int main(int argc, char **argv) {
     if (argc < 2) {
         printf("Usage: chip8 <rom file>\n");
@@ -31,6 +33,26 @@ int main(int argc, char **argv) {
     InitWindow(CHIP8_DISPLAY_WIDTH * SCALE, CHIP8_DISPLAY_HEIGHT * SCALE, "Chip-8");
 
     while (!WindowShouldClose() && Chip8ShouldRun(&chip8)) {
+        Chip8UpdateKey(&chip8, 0x1, GET_KEY_STATE(KEY_ONE));
+        Chip8UpdateKey(&chip8, 0x2, GET_KEY_STATE(KEY_TWO));
+        Chip8UpdateKey(&chip8, 0x3, GET_KEY_STATE(KEY_THREE));
+        Chip8UpdateKey(&chip8, 0xC, GET_KEY_STATE(KEY_FOUR));
+
+        Chip8UpdateKey(&chip8, 0x4, GET_KEY_STATE(KEY_Q));
+        Chip8UpdateKey(&chip8, 0x5, GET_KEY_STATE(KEY_W));
+        Chip8UpdateKey(&chip8, 0x6, GET_KEY_STATE(KEY_E));
+        Chip8UpdateKey(&chip8, 0xD, GET_KEY_STATE(KEY_R));
+
+        Chip8UpdateKey(&chip8, 0x7, GET_KEY_STATE(KEY_A));
+        Chip8UpdateKey(&chip8, 0x8, GET_KEY_STATE(KEY_S));
+        Chip8UpdateKey(&chip8, 0x9, GET_KEY_STATE(KEY_D));
+        Chip8UpdateKey(&chip8, 0xE, GET_KEY_STATE(KEY_F));
+
+        Chip8UpdateKey(&chip8, 0xA, GET_KEY_STATE(KEY_Z));
+        Chip8UpdateKey(&chip8, 0x0, GET_KEY_STATE(KEY_X));
+        Chip8UpdateKey(&chip8, 0xB, GET_KEY_STATE(KEY_C));
+        Chip8UpdateKey(&chip8, 0xF, GET_KEY_STATE(KEY_V));
+
         double totalMs = GetTime() * 1000.0;
     
         Chip8RunTick(&chip8, totalMs);

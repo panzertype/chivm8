@@ -27,13 +27,38 @@ int Chip8ShouldRun(Chip8 *chip8) {
     return chip8->shouldRun;
 }
 
-void Chip8RunTick(Chip8 *chip8, double timeMs) {
-    // todo: process input
+void Chip8UpdateKey(Chip8 *chip8, uint8_t key, KeyState state) {
+    if (state == CHIP8_KEY_DOWN) {
+        chip8->keyboard |= (1 << key);
+    } else {
+        chip8->keyboard &= ~(1 << key);
+    }
+}
 
+KeyState Chip8GetKey(Chip8 *chip8, uint8_t key) {
+    return (chip8->keyboard & (1 << key)) != 0 ? CHIP8_KEY_DOWN : CHIP8_KEY_UP;
+}
+
+void Chip8RunTick(Chip8 *chip8, double timeMs) {
     uint8_t firstByte = chip8->ram[chip8->programCounter];
     uint8_t secondByte = chip8->ram[chip8->programCounter + 1];
 
-    printf("%X %X\n", firstByte, secondByte);
+    uint16_t opcode = ((uint16_t)firstByte << 8) | (uint16_t)secondByte;
+
+    printf("[INFO]: Received opcode: 0x%04X\n", opcode);
+
+    switch ((opcode & 0xF000) >> 12) {
+        case 0x4:
+            printf("0x4 \n");
+            break;
+        default:
+            fprintf(
+                stderr,
+                "[ERROR] Unknown opcode: 0x%04X\n",
+                opcode
+            );
+            exit(1);
+    }
 
     chip8->programCounter += 2;
 }

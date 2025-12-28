@@ -23,6 +23,7 @@ typedef struct {
    // DEVICES
    uint8_t displayBuffer[CHIP8_DISPLAY_BUFFER_SIZE];
    uint8_t ram[4096];
+   uint16_t keyboard;
 
    // REGISTERS
    uint16_t I;
@@ -37,8 +38,15 @@ typedef struct {
    uint16_t stack[16]; // up to 16 levels of nested subroutines
 } Chip8;
 
+typedef enum {
+   CHIP8_KEY_UP,
+   CHIP8_KEY_DOWN,
+} KeyState;
+
 void Chip8Init(Chip8 *chip8, uint8_t *rom, int romSize);
 void Chip8RunTick(Chip8 *chip8, double timeMs);
+void Chip8UpdateKey(Chip8 *chip8, uint8_t key, KeyState state);
+KeyState Chip8GetKey(Chip8 *chip8, uint8_t key);
 int Chip8ShouldRun(Chip8 *chip8);
 
 static const uint8_t digitSprites[] = {
