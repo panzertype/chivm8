@@ -66,11 +66,11 @@ void Chip8RunTick(Chip8 *chip8, double timeMs) {
                 case 0x00E0:
                     Chip8ClearScreen(chip8);
                     break;
-                // case 0x00EE:
-                //     // The interpreter sets the program counter to the address at the top of the stack, then subtracts 1 from the stack pointer.
-                //     chip8->programCounter = chip8->stack[chip8->stackPointer - 1];
-                //     chip8->stackPointer--;
-                //     break;
+                case 0x00EE:
+                    // The interpreter sets the program counter to the address at the top of the stack, then subtracts 1 from the stack pointer.
+                    chip8->programCounter = chip8->stack[chip8->stackPointer - 1];
+                    chip8->stackPointer--;
+                    break;
                 default:
                     goto unknownOpcode;
             }
@@ -78,18 +78,18 @@ void Chip8RunTick(Chip8 *chip8, double timeMs) {
         case 1: // 1nnn
             chip8->programCounter = nnn;
             break;
-        // case 2: // 2nnn
-        //     // The interpreter increments the stack pointer, then puts the current PC on the top of the stack. The PC is then set to nnn.
-        //     chip8->stackPointer++; 
-        //     chip8->stack[chip8->stackPointer - 1] = chip8->programCounter;
-        //     chip8->programCounter = nnn;
-        //     break;
-        // case 4: // 4xkk
-        //     // Skip next instruction if Vx != kk.
-        //     if (chip8->registers[x] != kk) {
-        //         chip8->programCounter += 2;
-        //     }
-        //     break;
+        case 2: // 2nnn
+            // The interpreter increments the stack pointer, then puts the current PC on the top of the stack. The PC is then set to nnn.
+            chip8->stackPointer++; 
+            chip8->stack[chip8->stackPointer - 1] = chip8->programCounter;
+            chip8->programCounter = nnn;
+            break;
+        case 4: // 4xkk
+            // Skip next instruction if Vx != kk.
+            if (chip8->registers[x] != kk) {
+                chip8->programCounter += 2;
+            }
+            break;
         case 6: // 6xkk
             chip8->registers[x] = kk;
             break;
@@ -126,16 +126,16 @@ void Chip8RunTick(Chip8 *chip8, double timeMs) {
 
             break;
         }
-        // case 0xF:
-        //     switch(kk) {
-        //         case 0x1E: // Fx1E 
-        //             // I = I + Vx.
-        //             chip8->I += chip8->registers[x];
-        //             break; 
-        //         default:
-        //             goto unknownOpcode;
-        //     }
-        //     break;
+        case 0xF:
+            switch(kk) {
+                case 0x1E: // Fx1E 
+                    // I = I + Vx.
+                    chip8->I += chip8->registers[x];
+                    break; 
+                default:
+                    goto unknownOpcode;
+            }
+            break;
         default:
             unknownOpcode:
             fprintf(
