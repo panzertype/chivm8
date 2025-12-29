@@ -46,18 +46,22 @@ static void Chip8ClearScreen(Chip8 *chip8) {
 
 static int Chip8DrawSprite(Chip8 *chip8, uint8_t x, uint8_t y, uint8_t *sprite, uint8_t spriteLength) {
     int somePixelsErased = 0;
+    
+    // wrap if x > 63 and/or y > 31
+    x = x % 64;
+    y = y % 32;
 
     for (int spriteY = 0; spriteY < spriteLength; spriteY++) {
-        int isWrap = (y + spriteY) > CHIP8_DISPLAY_HEIGHT;
+        if((y + spriteY) >= CHIP8_DISPLAY_HEIGHT) continue; // offscreen
+
         int bufferPos = (y + spriteY) * CHIP8_DISPLAY_WIDTH + x;
-        if (isWrap) bufferPos -= CHIP8_DISPLAY_BUFFER_SIZE;
 
         uint8_t spriteHorizontalLine = sprite[spriteY];
 
         for (int spriteX = 0; spriteX < 8; spriteX++) {
-            int isWrap = (x + spriteX) > CHIP8_DISPLAY_WIDTH;
+            if((x + spriteX) >= CHIP8_DISPLAY_WIDTH) continue; // offscreen
+
             int pixelPos = bufferPos + spriteX;
-            if (isWrap) pixelPos -= CHIP8_DISPLAY_WIDTH;
 
             int wasPixelActive = chip8->displayBuffer[pixelPos] != 0;
             int isPixelActive = spriteHorizontalLine & (1 << (7 - spriteX));
