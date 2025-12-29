@@ -44,6 +44,40 @@ static void Chip8ClearScreen(Chip8 *chip8) {
     memset(chip8->displayBuffer, 0, CHIP8_DISPLAY_BUFFER_SIZE);
 }
 
+static int Chip8DrawSprite(Chip8 *chip8, uint8_t x, uint8_t y, uint8_t *sprite, uint8_t spriteLength) {
+    int somePixelsErased = 0;
+
+    for (int spriteY = 0; spriteY < spriteLength; spriteY++) {
+        int isWrap = (y + spriteY) > CHIP8_DISPLAY_HEIGHT;
+        int bufferPos = (y + spriteY) * CHIP8_DISPLAY_WIDTH + x;
+        if (isWrap) bufferPos -= CHIP8_DISPLAY_BUFFER_SIZE;
+
+        uint8_t spriteHorizontalLine = sprite[spriteY];
+
+        for (int spriteX = 0; spriteX < 8; spriteX++) {
+            int isWrap = (x + spriteX) > CHIP8_DISPLAY_WIDTH;
+            int pixelPos = bufferPos + spriteX;
+            if (isWrap) pixelPos -= CHIP8_DISPLAY_WIDTH;
+
+            int wasPixelActive = chip8->displayBuffer[pixelPos] != 0;
+            int isPixelActive = spriteHorizontalLine & (1 << (7 - spriteX));
+            int isCollision = isPixelActive && wasPixelActive;
+
+            if (isCollision) {
+                chip8->displayBuffer[pixelPos] = 0;
+            } else {
+                chip8->displayBuffer[pixelPos] = isPixelActive ? 1 : 0;
+            }
+
+            if (!somePixelsErased) {
+                somePixelsErased = isCollision;
+            }
+        }
+    }
+
+    return somePixelsErased;
+}
+
 void Chip8RunTick(Chip8 *chip8, double timeMs) {
     uint8_t firstByte = chip8->ram[chip8->programCounter];
     uint8_t secondByte = chip8->ram[chip8->programCounter + 1];
@@ -131,7 +165,6 @@ void Chip8RunTick(Chip8 *chip8, double timeMs) {
             // Sprites are XORed onto the existing screen. If this causes any pixels to be erased,
             // VF is set to 1, otherwise it is set to 0.
 
-            int somePixelsErased = 0;
             uint8_t spriteLength = n;
             uint8_t vx = chip8->registers[x];
             uint8_t vy = chip8->registers[y];
@@ -139,28 +172,7 @@ void Chip8RunTick(Chip8 *chip8, double timeMs) {
             uint8_t sprite[15] = {0}; 
             memcpy(sprite, chip8->ram + chip8->I, spriteLength);
 
-            for (int spriteIdx = 0; spriteIdx < spriteLength; spriteIdx++) {
-                int bufferPos = (vy + spriteIdx) * CHIP8_DISPLAY_WIDTH + vx;
-                uint8_t spriteLine = sprite[spriteIdx];
-
-                // todo: sprites wrapping
-                for (int bitPos = 0; bitPos < 8; bitPos++) {
-                    int pixelPos = bufferPos + bitPos;
-                    int wasPixelActive = chip8->displayBuffer[pixelPos] != 0;
-                    int isPixelActive = spriteLine & (1 << (7 - bitPos));
-                    int isCollision = isPixelActive && wasPixelActive;
-
-                    if (isCollision) {
-                        chip8->displayBuffer[pixelPos] = 0;
-                    } else {
-                        chip8->displayBuffer[pixelPos] = isPixelActive ? 1 : 0;
-                    }
-
-                    if (!somePixelsErased) {
-                        somePixelsErased = isCollision;
-                    }
-                }
-            }
+            int somePixelsErased = Chip8DrawSprite(chip8, vx, vy, sprite, spriteLength);
 
             chip8->registers[0xF] = somePixelsErased ? 1 : 0;
 
