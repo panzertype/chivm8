@@ -4,6 +4,8 @@
 
 #define SCALE 8
 
+#define CLOCK_RATE(hz) 1 / (0.0 + hz)
+
 #define GET_KEY_STATE(key) IsKeyUp(key) ? CHIP8_KEY_UP : CHIP8_KEY_DOWN
 
 int main(int argc, char **argv) {
@@ -67,7 +69,7 @@ int main(int argc, char **argv) {
             }
         EndDrawing();
 
-        WaitTime(0.02);
+        WaitTime(CLOCK_RATE(300));
     }
 
     CloseWindow();
