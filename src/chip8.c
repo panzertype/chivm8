@@ -248,6 +248,10 @@ void Chip8RunCycle(Chip8 *chip8) {
         case 0xA: // Annn
             chip8->I = nnn;
             break;
+        case 0xB: // Bnnn
+            // Jump to location nnn + V0.
+            chip8->programCounter = nnn + chip8->registers[0];
+            break;
         case 0xD: { // Dxyn
             // Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
             // Sprites may be up to 15 bytes, for a possible sprite size of 8x15.
@@ -268,12 +272,50 @@ void Chip8RunCycle(Chip8 *chip8) {
 
             break;
         }
+        case 0xE:
+            switch(kk) {
+                case 0x9E:
+                    // Skip next instruction if key with the value of Vx is pressed.
+                    if (Chip8GetKey(chip8, chip8->registers[x]) == CHIP8_KEY_DOWN) {
+                        chip8->programCounter += 2;
+                    } 
+                    break;
+                case 0xA1:
+                    // Skip next instruction if key with the value of Vx is not pressed.
+                    if (Chip8GetKey(chip8, chip8->registers[x]) == CHIP8_KEY_UP) {
+                        chip8->programCounter += 2;
+                    } 
+                    break;
+                default:
+                    goto unknownOpcode;
+            }
+            break;
         case 0xF:
             switch(kk) {
+                case 0x07: // Fx07
+                    // Vx = delay timer value.
+                    chip8->registers[x] = chip8->delay;
+                    break;
                 case 0x1E: // Fx1E 
                     // I = I + Vx.
                     chip8->I += chip8->registers[x];
                     break; 
+                case 0x15: // Fx15
+                    // delay timer = Vx.
+                    chip8->delay = chip8->registers[x];
+                    break;
+                case 0x55: // Fx55 
+                    // Copy the values of registers V0 through Vx into memory, starting at the address in I.
+                    for (int i = 0; i <= x; i++) {
+                       chip8->ram[chip8->I + i] = chip8->registers[i];
+                    }
+                    break; 
+                case 0x65: // Fx65
+                    // Reads values from memory starting at location I into registers V0 through Vx.
+                    for (int i = 0; i <= x; i++) {
+                       chip8->registers[i] = chip8->ram[chip8->I + i];
+                    }
+                    break;
                 default:
                     goto unknownOpcode;
             }

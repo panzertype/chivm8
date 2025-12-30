@@ -11,6 +11,8 @@
 static const double CHIP8_TIMER_RATE_MS = CLOCK_RATE(60);
 #define CHIP8_CYCLES_PER_INSTRUCTION 1
 
+#define CHIP8_REGISTERS_COUNT 16
+
 // MEMORY MAP
 #define MMAP_PROGRAM_END 0xFFF
 #define MMAP_PROGRAM_START 0x200
@@ -30,7 +32,7 @@ typedef struct {
 
    // REGISTERS
    uint16_t I;
-   uint8_t registers[16];
+   uint8_t registers[CHIP8_REGISTERS_COUNT];
    uint8_t delay;
    uint8_t sound;
 
