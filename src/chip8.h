@@ -7,7 +7,9 @@
 #define CHIP8_DISPLAY_HEIGHT 32
 #define CHIP8_DISPLAY_BUFFER_SIZE CHIP8_DISPLAY_WIDTH * CHIP8_DISPLAY_HEIGHT
 
-#define CHIP8_RATE_HZ 60
+#define CLOCK_RATE(hz) (1 / (0.0 + hz))
+
+static const double CHIP8_TIMER_RATE_MS = CLOCK_RATE(60);
 
 // MEMORY MAP
 #define MMAP_PROGRAM_END 0xFFF
@@ -19,6 +21,7 @@
 
 typedef struct {
    int shouldRun;
+   int shouldDraw;
 
    // DEVICES
    uint8_t displayBuffer[CHIP8_DISPLAY_BUFFER_SIZE];
@@ -43,11 +46,13 @@ typedef enum {
    CHIP8_KEY_DOWN,
 } KeyState;
 
+int Chip8ShouldRun(Chip8 *chip8);
+int Chip8ShouldDraw(Chip8 *chip8);
 void Chip8Init(Chip8 *chip8, uint8_t *rom, int romSize);
-void Chip8RunTick(Chip8 *chip8, double timeMs);
+void Chip8RunCycle(Chip8 *chip8);
+int Chip8RunTimers(Chip8 *chip8, double prevTimeMs, double totalTimeMs);
 void Chip8UpdateKey(Chip8 *chip8, uint8_t key, KeyState state);
 KeyState Chip8GetKey(Chip8 *chip8, uint8_t key);
-int Chip8ShouldRun(Chip8 *chip8);
 
 static const uint8_t digitSprites[] = {
    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0

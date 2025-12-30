@@ -28,6 +28,10 @@ int Chip8ShouldRun(Chip8 *chip8) {
     return chip8->shouldRun;
 }
 
+int Chip8ShouldDraw(Chip8 *chip8) {
+    return chip8->shouldDraw;
+}
+
 void Chip8UpdateKey(Chip8 *chip8, uint8_t key, KeyState state) {
     if (state == CHIP8_KEY_DOWN) {
         chip8->keyboard |= (1 << key);
@@ -45,6 +49,8 @@ static void Chip8ClearScreen(Chip8 *chip8) {
 }
 
 static int Chip8DrawSprite(Chip8 *chip8, uint8_t x, uint8_t y, uint8_t *sprite, uint8_t spriteLength) {
+    chip8->shouldDraw = 1;
+
     int somePixelsErased = 0;
     
     // wrap if x > 63 and/or y > 31
@@ -82,7 +88,18 @@ static int Chip8DrawSprite(Chip8 *chip8, uint8_t x, uint8_t y, uint8_t *sprite, 
     return somePixelsErased;
 }
 
-void Chip8RunTick(Chip8 *chip8, double timeMs) {
+int Chip8RunTimers(Chip8 *chip8, double prevTimeMs, double totalTimeMs) {
+   if (totalTimeMs - prevTimeMs < CHIP8_TIMER_RATE_MS) return 0;
+
+   if (chip8->delay != 0) chip8->delay--;
+   if (chip8->sound != 0) chip8->sound--;
+
+   return 1;
+}
+
+void Chip8RunCycle(Chip8 *chip8) {
+    chip8->shouldDraw = 0;
+
     uint8_t firstByte = chip8->ram[chip8->programCounter];
     uint8_t secondByte = chip8->ram[chip8->programCounter + 1];
 
@@ -207,6 +224,16 @@ void Chip8RunTick(Chip8 *chip8, double timeMs) {
                 }
                 default:
                     goto unknownOpcode;
+            }
+            break;
+        case 9: // 9xy0
+            if (n != 0x0) {
+                goto unknownOpcode;
+            }
+
+            // Skip next instruction if Vx != Vy.
+            if (chip8->registers[x] != chip8->registers[y]) {
+                chip8->programCounter += 2;
             }
             break;
         case 0xA: // Annn
