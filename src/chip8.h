@@ -34,6 +34,9 @@ typedef struct {
    uint8_t delay;
    uint8_t sound;
 
+   // TIMERS
+   double latestTimersUpdateTimeMs;
+
    // PSEUDO-REGISTERS: not accessible from programs
    uint16_t programCounter;
    uint8_t stackPointer;
@@ -52,7 +55,7 @@ void Chip8DrawFinished(Chip8 *chip8);
 int Chip8ShouldPlayBeep(Chip8 *chip8);
 void Chip8Init(Chip8 *chip8, uint8_t *rom, int romSize);
 void Chip8RunCycle(Chip8 *chip8);
-int Chip8RunTimers(Chip8 *chip8, double prevTimeMs, double totalTimeMs);
+int Chip8RunTimers(Chip8 *chip8, double totalTimeMs);
 void Chip8UpdateKey(Chip8 *chip8, uint8_t key, KeyState state);
 KeyState Chip8GetKey(Chip8 *chip8, uint8_t key);
 

@@ -92,17 +92,20 @@ static int Chip8DrawSprite(Chip8 *chip8, uint8_t x, uint8_t y, uint8_t *sprite, 
     return somePixelsErased;
 }
 
-int Chip8RunTimers(Chip8 *chip8, double prevTimeMs, double totalTimeMs) {
-   if (totalTimeMs - prevTimeMs > CHIP8_TIMER_RATE_MS) return 0;
+int Chip8RunTimers(Chip8 *chip8, double totalTimeMs) {
+    if (totalTimeMs - chip8->latestTimersUpdateTimeMs < CHIP8_TIMER_RATE_MS) {
+       return 0;
+    }
 
-   if (chip8->delay > 0) chip8->delay--;
-   if (chip8->sound > 0) chip8->sound--;
+    if (chip8->delay > 0) chip8->delay--;
+    if (chip8->sound > 0) chip8->sound--;
 
-   return 1;
+    chip8->latestTimersUpdateTimeMs = totalTimeMs;
+    return 1;
 }
 
 int Chip8ShouldPlayBeep(Chip8 *chip8) {
-   return chip8->sound > 0;
+    return chip8->sound > 0;
 }
 
 void Chip8RunCycle(Chip8 *chip8) {

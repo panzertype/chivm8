@@ -42,8 +42,6 @@ int main(int argc, char **argv) {
     RenderTexture2D target = LoadRenderTexture(CHIP8_DISPLAY_WIDTH, CHIP8_DISPLAY_HEIGHT);
     SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);
 
-    double prevTimeMs = 0;
-
     while (!WindowShouldClose() && Chip8ShouldRun(&chip8)) {
         Chip8UpdateKey(&chip8, 0x1, GET_KEY_STATE(KEY_ONE));
         Chip8UpdateKey(&chip8, 0x2, GET_KEY_STATE(KEY_TWO));
@@ -68,14 +66,11 @@ int main(int argc, char **argv) {
         for (int i = 0; i < INSTRUCTIONS_PER_FRAME; i++) {
             Chip8RunCycle(&chip8);
 
-            double totalTimeMs = GetTime() * 1000.0;
-
             // todo: maybe move to a thread
-            if (Chip8RunTimers(&chip8, prevTimeMs, totalTimeMs)) {
-                prevTimeMs = totalTimeMs;
-                if (Chip8ShouldPlayBeep(&chip8)) {
-                    // todo: play sound
-                }
+            Chip8RunTimers(&chip8, GetTime() * 1000.0);
+
+            if (Chip8ShouldPlayBeep(&chip8)) {
+                // todo: play sound
             }
         }
 
