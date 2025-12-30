@@ -79,8 +79,8 @@ static int Chip8DrawSprite(Chip8 *chip8, uint8_t x, uint8_t y, uint8_t *sprite, 
 
             if (isCollision) {
                 chip8->displayBuffer[pixelPos] = 0;
-            } else {
-                chip8->displayBuffer[pixelPos] = isPixelActive ? 1 : 0;
+            } else if (isPixelActive) {
+                chip8->displayBuffer[pixelPos] = 1;
             }
 
             if (!somePixelsErased) {
