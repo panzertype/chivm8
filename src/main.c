@@ -4,6 +4,12 @@
 
 #define SCALE 8
 
+#define FPS 60
+
+#define CLOCK_SPEED 300
+#define INSTRUCTIONS_PER_SECOND (CLOCK_SPEED / CHIP8_CYCLES_PER_INSTRUCTION)
+#define INSTRUCTIONS_PER_FRAME (INSTRUCTIONS_PER_SECOND / FPS)
+
 #define GET_KEY_STATE(key) IsKeyUp(key) ? CHIP8_KEY_UP : CHIP8_KEY_DOWN
 
 int main(int argc, char **argv) {
@@ -30,12 +36,13 @@ int main(int argc, char **argv) {
         Chip8Init(&chip8, fileData, bytesRead);
     } UnloadFileData(fileData);
 
+    SetTargetFPS(FPS);
     InitWindow(CHIP8_DISPLAY_WIDTH * SCALE, CHIP8_DISPLAY_HEIGHT * SCALE, "Chip-8");
-
-    double prevTimeMs = 0;
 
     RenderTexture2D target = LoadRenderTexture(CHIP8_DISPLAY_WIDTH, CHIP8_DISPLAY_HEIGHT);
     SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);
+
+    double prevTimeMs = 0;
 
     while (!WindowShouldClose() && Chip8ShouldRun(&chip8)) {
         Chip8UpdateKey(&chip8, 0x1, GET_KEY_STATE(KEY_ONE));
@@ -58,11 +65,18 @@ int main(int argc, char **argv) {
         Chip8UpdateKey(&chip8, 0xB, GET_KEY_STATE(KEY_C));
         Chip8UpdateKey(&chip8, 0xF, GET_KEY_STATE(KEY_V));
 
-        Chip8RunCycle(&chip8);
-    
-        double totalTimeMs = GetTime() * 1000.0;
-        if (Chip8RunTimers(&chip8, prevTimeMs, totalTimeMs)) {
-            prevTimeMs = totalTimeMs;
+        for (int i = 0; i < INSTRUCTIONS_PER_FRAME; i++) {
+            Chip8RunCycle(&chip8);
+
+            double totalTimeMs = GetTime() * 1000.0;
+
+            // todo: maybe move to a thread
+            if (Chip8RunTimers(&chip8, prevTimeMs, totalTimeMs)) {
+                prevTimeMs = totalTimeMs;
+                if (Chip8ShouldPlayBeep(&chip8)) {
+                    // todo: play sound
+                }
+            }
         }
 
         if (Chip8ShouldDraw(&chip8)) {
@@ -86,7 +100,7 @@ int main(int argc, char **argv) {
                 (Vector2){ 0, 0 }, 0.0f, WHITE);
         EndDrawing();
 
-        WaitTime(CLOCK_RATE(300));
+        Chip8DrawFinished(&chip8);
     }
 
     UnloadRenderTexture(target);

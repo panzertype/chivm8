@@ -32,6 +32,10 @@ int Chip8ShouldDraw(Chip8 *chip8) {
     return chip8->shouldDraw;
 }
 
+void Chip8DrawFinished(Chip8 *chip8) {
+    chip8->shouldDraw = 0;
+}
+
 void Chip8UpdateKey(Chip8 *chip8, uint8_t key, KeyState state) {
     if (state == CHIP8_KEY_DOWN) {
         chip8->keyboard |= (1 << key);
@@ -89,17 +93,19 @@ static int Chip8DrawSprite(Chip8 *chip8, uint8_t x, uint8_t y, uint8_t *sprite, 
 }
 
 int Chip8RunTimers(Chip8 *chip8, double prevTimeMs, double totalTimeMs) {
-   if (totalTimeMs - prevTimeMs < CHIP8_TIMER_RATE_MS) return 0;
+   if (totalTimeMs - prevTimeMs > CHIP8_TIMER_RATE_MS) return 0;
 
-   if (chip8->delay != 0) chip8->delay--;
-   if (chip8->sound != 0) chip8->sound--;
+   if (chip8->delay > 0) chip8->delay--;
+   if (chip8->sound > 0) chip8->sound--;
 
    return 1;
 }
 
-void Chip8RunCycle(Chip8 *chip8) {
-    chip8->shouldDraw = 0;
+int Chip8ShouldPlayBeep(Chip8 *chip8) {
+   return chip8->sound > 0;
+}
 
+void Chip8RunCycle(Chip8 *chip8) {
     uint8_t firstByte = chip8->ram[chip8->programCounter];
     uint8_t secondByte = chip8->ram[chip8->programCounter + 1];
 

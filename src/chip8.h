@@ -8,8 +8,8 @@
 #define CHIP8_DISPLAY_BUFFER_SIZE CHIP8_DISPLAY_WIDTH * CHIP8_DISPLAY_HEIGHT
 
 #define CLOCK_RATE(hz) (1 / (0.0 + hz))
-
 static const double CHIP8_TIMER_RATE_MS = CLOCK_RATE(60);
+#define CHIP8_CYCLES_PER_INSTRUCTION 1
 
 // MEMORY MAP
 #define MMAP_PROGRAM_END 0xFFF
@@ -48,6 +48,8 @@ typedef enum {
 
 int Chip8ShouldRun(Chip8 *chip8);
 int Chip8ShouldDraw(Chip8 *chip8);
+void Chip8DrawFinished(Chip8 *chip8);
+int Chip8ShouldPlayBeep(Chip8 *chip8);
 void Chip8Init(Chip8 *chip8, uint8_t *rom, int romSize);
 void Chip8RunCycle(Chip8 *chip8);
 int Chip8RunTimers(Chip8 *chip8, double prevTimeMs, double totalTimeMs);
