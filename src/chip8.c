@@ -184,12 +184,21 @@ void Chip8RunCycle(Chip8 *chip8) {
                     break;
                 case 1: // 8xy1
                     chip8->registers[x] |= chip8->registers[y];
+
+                    // @QUIRK: vF reset
+                    chip8->registers[0xF] = 0;
                     break;
                 case 2: // 8xy2
                     chip8->registers[x] &= chip8->registers[y];
+
+                    // @QUIRK: vF reset
+                    chip8->registers[0xF] = 0;
                     break;
                 case 3: // 8xy3
                     chip8->registers[x] ^= chip8->registers[y];
+
+                    // @QUIRK: vF reset
+                    chip8->registers[0xF] = 0;
                     break;
                 case 4: { // 8xy4
                     uint16_t result = chip8->registers[x] + chip8->registers[y];
@@ -209,6 +218,8 @@ void Chip8RunCycle(Chip8 *chip8) {
                     break;
                 }
                 case 6: { // 8xy6
+                    // @QUIRK: shifting
+                    chip8->registers[x] = chip8->registers[y];
                     // is least significant bit one
                     chip8->registers[0xF] = chip8->registers[x] & 1;
                     // divide by 2
@@ -224,6 +235,8 @@ void Chip8RunCycle(Chip8 *chip8) {
                     break;
                 }
                 case 0xE: { // 8xyE
+                    // @QUIRK: shifting
+                    chip8->registers[x] = chip8->registers[y];
                     // is most significant bit one
                     chip8->registers[0xF] = chip8->registers[x] >> 7;
                     // multiply by 2
@@ -296,6 +309,14 @@ void Chip8RunCycle(Chip8 *chip8) {
                     // Vx = delay timer value.
                     chip8->registers[x] = chip8->delay;
                     break;
+                case 0x0A: // Fx0A
+                    // Wait for a key press, store the value of the key in Vx.
+                    if (Chip8GetKey(chip8, chip8->registers[x]) == CHIP8_KEY_DOWN) {
+                        chip8->registers[x] = x;
+                    } else {
+                        chip8->programCounter -= 2;
+                    }
+                    break;
                 case 0x1E: // Fx1E 
                     // I = I + Vx.
                     chip8->I += chip8->registers[x];
@@ -307,14 +328,20 @@ void Chip8RunCycle(Chip8 *chip8) {
                 case 0x55: // Fx55 
                     // Copy the values of registers V0 through Vx into memory, starting at the address in I.
                     for (int i = 0; i <= x; i++) {
-                       chip8->ram[chip8->I + i] = chip8->registers[i];
+                        chip8->ram[chip8->I + i] = chip8->registers[i];
                     }
+
+                    // @QUIRK: memory
+                    chip8->I = chip8->I + x + 1;
                     break; 
                 case 0x65: // Fx65
                     // Reads values from memory starting at location I into registers V0 through Vx.
                     for (int i = 0; i <= x; i++) {
-                       chip8->registers[i] = chip8->ram[chip8->I + i];
+                        chip8->registers[i] = chip8->ram[chip8->I + i];
                     }
+
+                    // @QUIRK: memory
+                    chip8->I = chip8->I + x + 1;
                     break;
                 default:
                     goto unknownOpcode;
