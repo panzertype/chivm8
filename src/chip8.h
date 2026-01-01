@@ -28,6 +28,7 @@ typedef struct {
    uint8_t displayBuffer[CHIP8_DISPLAY_BUFFER_SIZE];
    uint8_t ram[4096];
    uint16_t keyboard;
+   uint16_t prevKeyboard;
 
    // REGISTERS
    uint16_t I;
@@ -58,7 +59,6 @@ void Chip8Init(Chip8 *chip8, uint8_t *rom, int romSize);
 void Chip8RunCycle(Chip8 *chip8);
 int Chip8RunTimers(Chip8 *chip8, double totalTimeMs);
 void Chip8UpdateKey(Chip8 *chip8, uint8_t key, KeyState state);
-KeyState Chip8GetKey(Chip8 *chip8, uint8_t key);
 
 static const uint8_t digitSprites[] = {
    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0

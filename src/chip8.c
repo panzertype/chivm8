@@ -44,8 +44,8 @@ void Chip8UpdateKey(Chip8 *chip8, uint8_t key, KeyState state) {
     }
 }
 
-KeyState Chip8GetKey(Chip8 *chip8, uint8_t key) {
-    return (chip8->keyboard & (1 << key)) != 0 ? CHIP8_KEY_DOWN : CHIP8_KEY_UP;
+static KeyState Chip8GetKey(uint16_t keyboard, uint8_t key) {
+    return (keyboard & (1 << key)) != 0 ? CHIP8_KEY_DOWN : CHIP8_KEY_UP;
 }
 
 static void Chip8ClearScreen(Chip8 *chip8) {
@@ -299,13 +299,13 @@ void Chip8RunCycle(Chip8 *chip8) {
             switch(kk) {
                 case 0x9E:
                     // Skip next instruction if key with the value of Vx is pressed.
-                    if (Chip8GetKey(chip8, chip8->registers[x]) == CHIP8_KEY_DOWN) {
+                    if (Chip8GetKey(chip8->keyboard, chip8->registers[x]) == CHIP8_KEY_DOWN) {
                         chip8->programCounter += 2;
                     } 
                     break;
                 case 0xA1:
                     // Skip next instruction if key with the value of Vx is not pressed.
-                    if (Chip8GetKey(chip8, chip8->registers[x]) == CHIP8_KEY_UP) {
+                    if (Chip8GetKey(chip8->keyboard, chip8->registers[x]) == CHIP8_KEY_UP) {
                         chip8->programCounter += 2;
                     } 
                     break;
@@ -319,14 +319,24 @@ void Chip8RunCycle(Chip8 *chip8) {
                     // Vx = delay timer value.
                     chip8->registers[x] = chip8->delay;
                     break;
-                case 0x0A: // Fx0A
+                case 0x0A: { // Fx0A
                     // Wait for a key press, store the value of the key in Vx.
-                    if (Chip8GetKey(chip8, chip8->registers[x]) == CHIP8_KEY_DOWN) {
-                        chip8->registers[x] = x;
-                    } else {
-                        chip8->programCounter -= 2;
+                    int keyWasPressed = 0;
+
+                    for (int key = 0; key < 16; key++) {
+                        if (Chip8GetKey(chip8->prevKeyboard, key) == CHIP8_KEY_DOWN &&
+                            Chip8GetKey(chip8->keyboard, key) == CHIP8_KEY_UP)
+                        {
+                            chip8->registers[x] = key;
+                            keyWasPressed = 1;
+                            break;
+                        }
                     }
+
+                    if (!keyWasPressed) chip8->programCounter -= 2;
+
                     break;
+                }
                 case 0x1E: // Fx1E 
                     // I = I + Vx.
                     chip8->I += chip8->registers[x];
@@ -379,4 +389,6 @@ void Chip8RunCycle(Chip8 *chip8) {
             );
             exit(1);
     }
+
+    chip8->prevKeyboard = chip8->keyboard;
 }
