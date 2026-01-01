@@ -335,6 +335,19 @@ void Chip8RunCycle(Chip8 *chip8) {
                     // delay timer = Vx.
                     chip8->delay = chip8->registers[x];
                     break;
+                case 0x33: { // Fx33
+                    uint8_t digits[3] = {
+                        chip8->registers[x] / 100,
+                        (chip8->registers[x] / 10) % 10,
+                        chip8->registers[x] % 10
+                    };
+
+                    for (int i = 0; i < 3; i++) {
+                        chip8->ram[chip8->I + i] = digits[i];
+                    }
+
+                    break;
+                }
                 case 0x55: // Fx55 
                     // Copy the values of registers V0 through Vx into memory, starting at the address in I.
                     for (int i = 0; i <= x; i++) {
