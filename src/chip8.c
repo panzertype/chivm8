@@ -203,44 +203,54 @@ void Chip8RunCycle(Chip8 *chip8) {
                 case 4: { // 8xy4
                     uint16_t result = chip8->registers[x] + chip8->registers[y];
 
+                    chip8->registers[x] = (uint8_t)result;
+
                     // is carry
                     chip8->registers[0xF] = result > 255;
-
-                    chip8->registers[x] = (uint8_t)result;
 
                     break;
                 }
                 case 5: { // 8xy5
-                    // is no borrow
-                    chip8->registers[0xF] = chip8->registers[x] > chip8->registers[y];
+                    int isNoUnderflow = chip8->registers[x] >= chip8->registers[y];
+
                     chip8->registers[x] -= chip8->registers[y];
+
+                    chip8->registers[0xF] = isNoUnderflow;
 
                     break;
                 }
                 case 6: { // 8xy6
                     // @QUIRK: shifting
                     chip8->registers[x] = chip8->registers[y];
-                    // is least significant bit one
-                    chip8->registers[0xF] = chip8->registers[x] & 1;
+
+                    int isLeastSignificantBitOne = chip8->registers[x] & 1;
+
                     // divide by 2
                     chip8->registers[x] >>= 1;
+
+                    chip8->registers[0xF] = isLeastSignificantBitOne;
 
                     break;
                 }
                 case 7: { // 8xy7
-                    // is no borrow
-                    chip8->registers[0xF] = chip8->registers[y] > chip8->registers[x];
+                    int isNoUnderflow = chip8->registers[y] >= chip8->registers[x];
+
                     chip8->registers[x] = chip8->registers[y] - chip8->registers[x];
+
+                    chip8->registers[0xF] = isNoUnderflow;
 
                     break;
                 }
                 case 0xE: { // 8xyE
                     // @QUIRK: shifting
                     chip8->registers[x] = chip8->registers[y];
-                    // is most significant bit one
-                    chip8->registers[0xF] = chip8->registers[x] >> 7;
+
+                    int isMostSignificantBitOne = chip8->registers[x] >> 7;
+
                     // multiply by 2
                     chip8->registers[x] <<= 1;
+
+                    chip8->registers[0xF] = isMostSignificantBitOne;
 
                     break;
                 }
