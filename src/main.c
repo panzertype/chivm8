@@ -72,21 +72,21 @@ int main(int argc, char **argv) {
             if (Chip8ShouldPlayBeep(&chip8)) {
                 // todo: play sound
             }
+        
+            if (Chip8ShouldDraw(&chip8)) break;
         }
 
-        if (Chip8ShouldDraw(&chip8)) {
-            BeginTextureMode(target);
-                ClearBackground(BLACK);
+        BeginTextureMode(target);
+            ClearBackground(BLACK);
 
-                for (int y = 0; y < CHIP8_DISPLAY_HEIGHT; y++) {
-                    for (int x = 0; x < CHIP8_DISPLAY_WIDTH; x++) {
-                        if (chip8.displayBuffer[y * CHIP8_DISPLAY_WIDTH + x] != 0) {
-                            DrawPixel(x, y, RAYWHITE);  
-                        }
+            for (int y = 0; y < CHIP8_DISPLAY_HEIGHT; y++) {
+                for (int x = 0; x < CHIP8_DISPLAY_WIDTH; x++) {
+                    if (chip8.displayBuffer[y * CHIP8_DISPLAY_WIDTH + x] != 0) {
+                        DrawPixel(x, y, RAYWHITE);  
                     }
                 }
-            EndTextureMode();
-        }
+            }
+        EndTextureMode();
 
         BeginDrawing();
             DrawTexturePro(target.texture, 
