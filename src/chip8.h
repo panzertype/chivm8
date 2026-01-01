@@ -60,6 +60,8 @@ void Chip8RunCycle(Chip8 *chip8);
 int Chip8RunTimers(Chip8 *chip8, double totalTimeMs);
 void Chip8UpdateKey(Chip8 *chip8, uint8_t key, KeyState state);
 
+#define CHIP8_FONT_SPRITE_LENGTH 5
+
 static const uint8_t digitSprites[] = {
    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
    0x20, 0x60, 0x20, 0x20, 0x70, // 1

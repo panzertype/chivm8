@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
 #include "chip8.h"
 #include "raylib.h"
 
@@ -13,6 +15,8 @@
 #define GET_KEY_STATE(key) IsKeyUp(key) ? CHIP8_KEY_UP : CHIP8_KEY_DOWN
 
 int main(int argc, char **argv) {
+    srand(time(NULL));    
+
     if (argc < 2) {
         printf("Usage: chip8 <rom file>\n");
         return 1;

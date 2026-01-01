@@ -275,6 +275,10 @@ void Chip8RunCycle(Chip8 *chip8) {
             // Jump to location nnn + V0.
             chip8->programCounter = nnn + chip8->registers[0];
             break;
+        case 0xC: // Cxkk
+            // Set Vx to a random value masked (bitwise AND) with kk
+            chip8->registers[x] = (uint8_t)rand() & kk;
+            break;
         case 0xD: { // Dxyn
             // Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
             // Sprites may be up to 15 bytes, for a possible sprite size of 8x15.
@@ -337,13 +341,21 @@ void Chip8RunCycle(Chip8 *chip8) {
 
                     break;
                 }
+                case 0x15: // Fx15
+                    // delay timer = Vx.
+                    chip8->delay = chip8->registers[x];
+                    break;
+                case 0x18: // Fx18
+                    // sound timer = Vx.
+                    chip8->sound = chip8->registers[x];
+                    break;
                 case 0x1E: // Fx1E 
                     // I = I + Vx.
                     chip8->I += chip8->registers[x];
                     break; 
-                case 0x15: // Fx15
-                    // delay timer = Vx.
-                    chip8->delay = chip8->registers[x];
+                case 0x29:
+                    // I is set to the location for the font sprite corresponding to the value of Vx
+                    chip8->I = (chip8->registers[x] & 0x0F) * CHIP8_FONT_SPRITE_LENGTH;
                     break;
                 case 0x33: { // Fx33
                     uint8_t digits[3] = {
