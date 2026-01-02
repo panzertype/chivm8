@@ -42,9 +42,12 @@ int main(int argc, char **argv) {
 
     SetTargetFPS(FPS);
     InitWindow(CHIP8_DISPLAY_WIDTH * SCALE, CHIP8_DISPLAY_HEIGHT * SCALE, "Chip-8");
+    InitAudioDevice();
 
     RenderTexture2D target = LoadRenderTexture(CHIP8_DISPLAY_WIDTH, CHIP8_DISPLAY_HEIGHT);
     SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);
+
+    Sound beepSound = LoadSound("assets/beep.wav"); 
 
     while (!WindowShouldClose() && Chip8ShouldRun(&chip8)) {
         Chip8UpdateKey(&chip8, 0x1, GET_KEY_STATE(KEY_ONE));
@@ -74,7 +77,7 @@ int main(int argc, char **argv) {
             Chip8RunTimers(&chip8, GetTime() * 1000.0);
 
             if (Chip8ShouldPlayBeep(&chip8)) {
-                // todo: play sound
+                PlaySound(beepSound);
             }
         
             if (Chip8ShouldDraw(&chip8)) break;
@@ -102,6 +105,9 @@ int main(int argc, char **argv) {
         Chip8DrawFinished(&chip8);
     }
 
+    UnloadSound(beepSound);
+
+    CloseAudioDevice();
     UnloadRenderTexture(target);
     CloseWindow();
 
