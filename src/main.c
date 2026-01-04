@@ -2,6 +2,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include "chip8.h"
+#include "../assets/beep.h"
 #include "raylib.h"
 
 #define SCALE 8
@@ -39,13 +40,16 @@ int main(int argc, char **argv) {
     } UnloadFileData(fileData);
 
     SetTargetFPS(FPS);
-    InitWindow(CHIP8_DISPLAY_WIDTH * SCALE, CHIP8_DISPLAY_HEIGHT * SCALE, "Chip-8");
+    InitWindow(CHIP8_DISPLAY_WIDTH * SCALE, CHIP8_DISPLAY_HEIGHT * SCALE, "Chivm8");
     InitAudioDevice();
 
     RenderTexture2D target = LoadRenderTexture(CHIP8_DISPLAY_WIDTH, CHIP8_DISPLAY_HEIGHT);
     SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);
 
-    Sound beepSound = LoadSound("assets/beep.wav"); 
+    Sound beepSound;
+    Wave wave = LoadWaveFromMemory(".wav", beep_wav, beep_wav_len); {
+        beepSound = LoadSoundFromWave(wave); 
+    } UnloadWave(wave);
 
     while (!WindowShouldClose() && Chip8ShouldRun(&chip8)) {
         Chip8UpdateKey(&chip8, 0x1, GET_KEY_STATE(KEY_ONE));
