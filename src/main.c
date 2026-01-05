@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     while (AppShouldRun(&app)) {
         AppProcessChip8Inputs(&app);
         AppRunChip8(&app);
-        AppDrawChip8DisplayBuffer(&app);
+        AppRenderChip8DisplayBuffer(&app);
         AppDraw(&app);
     }
 

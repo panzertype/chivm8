@@ -7,7 +7,7 @@ option(DEBUG "Build with debug symbols" OFF)
 
 find_package(raylib 5.5 REQUIRED)
 
-add_executable(${PROJECT_NAME} src/main.c src/chip8.c)
+add_executable(${PROJECT_NAME} src/main.c src/chip8.c src/platform.c)
 
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror)
 
