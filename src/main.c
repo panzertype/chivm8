@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     srand(time(NULL));    
 
     if (argc < 2) {
-        printf("Usage: chip8 <rom file>\n");
+        printf("Usage: chivm8 <rom file>\n");
         return 1;
     }
 
